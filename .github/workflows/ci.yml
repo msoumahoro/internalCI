@@ -64,4 +64,24 @@ jobs:
       - name: Deploy to staging
         if: ${{ env.DEPLOY_TARGET == 'staging' || env.DEPLOY_TARGET == 'both' }}
         env:
-          DEPLOY_API_TOKE
+          DEPLOY_API_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
+        run: |
+          echo "Deploying $BUILD_VERSION to staging"
+          # ./deploy.sh staging
+
+      - name: Post staging checks
+        if: ${{ env.DEPLOY_TARGET == 'both' }}
+        run: |
+          echo "Smoke checks after staging"
+          # add automated checks here
+
+      - name: Deploy to production
+        if: ${{ env.DEPLOY_TARGET == 'production' || env.DEPLOY_TARGET == 'both' }}
+        env:
+          DEPLOY_API_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
+        run: |
+          echo "Deploying $BUILD_VERSION to production"
+          # ./deploy.sh production
+
+      - name: Notify
+        run: echo "Pipeline finished for version $BUILD_VERSION"

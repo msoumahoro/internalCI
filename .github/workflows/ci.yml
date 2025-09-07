@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      BUILD_VERSION:
+        description: App version
+        default: "1.0.0"
+        required: true
+      RUN_SECURITY_SCAN:
+        description: Run security scan
+        type: boolean
+        default: true
+      DEPLOY_TARGET:
+        description: Where to deploy
+        type: choice
+        options: [staging, production, both]
+        default: staging
+
+env:
+  BUILD_VERSION: ${{ github.event.inputs.BUILD_VERSION || '1.0.0' }}
+  RUN_SECURITY_SCAN: ${{ github.event.inputs.RUN_SECURITY_SCAN || 'true' }}
+  DEPLOY_TARGET: ${{ github.event.inputs.DEPLOY_TARGET || 'staging' }}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Echo build info
+        run: |
+          echo "Fetching source code"
+          echo "Building version $BUILD_VERSION"
+
+      - name: Build
+        run: |
+          echo "Build"
+          echo "Compile"
+
+      - name: Unit test
+        run: echo "Run unit tests"
+
+      - name: Integration test
+        run: echo "Run integration tests"
+
+      - name: Security scan
+        if: ${{ env.RUN_SECURITY_SCAN == 'true' }}
+        run: echo "Security scan"
+
+      - name: Deploy to staging
+        if: ${{ env.DEPLOY_TARGET == 'staging' || env.DEPLOY_TARGET == 'both' }}
+        env:
+          DEPLOY_API_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
+        run: |
+          echo "Deploying $BUILD_VERSION to staging"
+          # ./deploy.sh staging
+
+      - name: Post staging checks
+        if: ${{ env.DEPLOY_TARGET == 'both' }}
+        run: |
+          echo "Smoke checks after staging"
+          # add automated checks here
+
+      - name: Deploy to production
+        if: ${{ env.DEPLOY_TARGET == 'production' || env.DEPLOY_TARGET == 'both' }}
+        env:
+          DEPLOY_API_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
+        run: |
+          echo "Deploying $BUILD_VERSION to production"
+          # ./deploy.sh production
+
+      - name: Notify
+        run: echo "Pipeline finished for version $BUILD_VERSION"

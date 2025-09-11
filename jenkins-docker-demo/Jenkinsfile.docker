@@ -18,7 +18,7 @@ pipeline {
             steps {
                 script {
                     echo "Building Docker image..."
-                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest ."
+                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest -f jenkins-docker-demo/Dockerfile jenkins-docker-demo/"
                 }
             }
         }

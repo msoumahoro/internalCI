@@ -1,0 +1,102 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "massa-k8s-demo"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo "📥 Checking out source code..."
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "🔨 Compiling application code (simulated)..."
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                echo "🧪 Running unit tests (simulated)..."
+                // sh "pytest tests/"
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                echo "🔗 Running integration tests (simulated)..."
+                // sh "./run_integration_tests.sh"
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                echo "🔒 Scanning code and dependencies (simulated)..."
+                // Example: sh "trivy fs ."
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds',
+                                                      usernameVariable: 'DOCKER_USER',
+                                                      passwordVariable: 'DOCKER_PASS')]) {
+                        echo "📦 Building Docker image..."
+                        sh "docker build -t $DOCKER_USER/${IMAGE_NAME}:latest ."
+                    }
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds',
+                                                      usernameVariable: 'DOCKER_USER',
+                                                      passwordVariable: 'DOCKER_PASS')]) {
+                        echo "🚀 Pushing Docker image to registry..."
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        sh "docker push $DOCKER_USER/${IMAGE_NAME}:latest"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes (Simulation)') {
+            steps {
+                echo "⚡ At this point, Kubernetes would pull the image from Docker Hub"
+                echo "⚡ and deploy it using a Deployment + Service manifest."
+                echo "⚡ Simulating: kubectl apply -f k8s-deployment.yaml"
+            }
+        }
+
+        stage('Post-Deployment Checks (Simulation)') {
+            steps {
+                echo "🔍 Running smoke tests / health checks (simulated)..."
+            }
+        }
+
+        stage('Notify') {
+            steps {
+                echo "📢 Sending Slack/email notifications (simulated)..."
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "🧹 Cleaning up temporary resources..."
+        }
+        success {
+            echo "✅ Pipeline completed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Please check logs."
+        }
+    }
+}

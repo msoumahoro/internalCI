@@ -1,4 +1,4 @@
-// Jenkinsfile-Test webhook
+// Jenkinsfile
 pipeline {
     agent any
 
